@@ -17,7 +17,9 @@ let dragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
 let points = [];
-let pixelsPerMeter = null;
+let meterPerPixel = 1;
+const MIN_RANGE = 100;
+const MAX_RANGE = 700;
 let calibrating = false;
 
 const distanceText = document.getElementById("distance");
@@ -38,6 +40,21 @@ function draw(){
     points.forEach((p,index)=>{
 
     ctx.beginPath();
+        if (points.length >= 1) {
+
+    ctx.beginPath();
+    ctx.arc(points[0].x, points[0].y, MIN_RANGE / meterPerPixel, 0, Math.PI * 2);
+    ctx.strokeStyle = "#00ff00";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(points[0].x, points[0].y, MAX_RANGE / meterPerPixel, 0, Math.PI * 2);
+    ctx.strokeStyle = "#ff0000";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+}
     ctx.arc(p.x,p.y,8,0,Math.PI*2);
 
     ctx.fillStyle=index===0 ? "#00ff00" : "#ff0000";
@@ -264,6 +281,21 @@ canvas.addEventListener("click",e=>{
 const distanceMeter = pixelDistance * meterPerPixel;
 
 distanceText.innerText = Math.round(distanceMeter) + " m";
+if (distanceMeter < MIN_RANGE) {
+
+    errorText.innerText = "Quá gần";
+
+}
+else if (distanceMeter > MAX_RANGE) {
+
+    errorText.innerText = "Ngoài tầm";
+
+}
+else {
+
+    errorText.innerText = "Trong tầm";
+
+}       
 
         const angle=Math.atan2(dx,-dy)*180/Math.PI;
 
