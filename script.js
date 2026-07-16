@@ -26,10 +26,10 @@ const distanceText = document.getElementById("distance");
 const bearingText = document.getElementById("bearing");
 const errorText = document.getElementById("error");
 
+
 function draw(){
 
     ctx.setTransform(1,0,0,1,0,0);
-
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
     if(!image) return;
@@ -37,44 +37,48 @@ function draw(){
     ctx.setTransform(scale,0,0,scale,offsetX,offsetY);
 
     ctx.drawImage(image,0,0);
+
+    // Vẽ vòng tròn tầm bắn
+    if (points.length >= 1) {
+
+        ctx.beginPath();
+        ctx.arc(points[0].x, points[0].y, MIN_RANGE / meterPerPixel, 0, Math.PI * 2);
+        ctx.strokeStyle = "#00ff00";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(points[0].x, points[0].y, MAX_RANGE / meterPerPixel, 0, Math.PI * 2);
+        ctx.strokeStyle = "#ff0000";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+    }
+
+    // Vẽ các điểm
     points.forEach((p,index)=>{
 
-    ctx.beginPath();
-        if (points.length >= 1) {
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,8,0,Math.PI*2);
 
-    ctx.beginPath();
-    ctx.arc(points[0].x, points[0].y, MIN_RANGE / meterPerPixel, 0, Math.PI * 2);
-    ctx.strokeStyle = "#00ff00";
-    ctx.lineWidth = 2;
-    ctx.stroke();
+        ctx.fillStyle = index===0 ? "#00ff00" : "#ff0000";
+        ctx.fill();
 
-    ctx.beginPath();
-    ctx.arc(points[0].x, points[0].y, MAX_RANGE / meterPerPixel, 0, Math.PI * 2);
-    ctx.strokeStyle = "#ff0000";
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    });
 
-}
-    ctx.arc(p.x,p.y,8,0,Math.PI*2);
+    // Vẽ đường nối
+    if(points.length===2){
 
-    ctx.fillStyle=index===0 ? "#00ff00" : "#ff0000";
-    ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(points[0].x,points[0].y);
+        ctx.lineTo(points[1].x,points[1].y);
+        ctx.strokeStyle="#ffff00";
+        ctx.lineWidth=3;
+        ctx.stroke();
 
-});
-
-if(points.length===2){
-
-    ctx.beginPath();
-    ctx.moveTo(points[0].x,points[0].y);
-    ctx.lineTo(points[1].x,points[1].y);
-    ctx.strokeStyle="#ffff00";
-    ctx.lineWidth=3;
-    ctx.stroke();
+    }
 
 }
-
-}
-
 function loadImage(src){
 
     const img=new Image();
@@ -91,6 +95,8 @@ function loadImage(src){
     offsetY = 0;
 
     points = [];
+        meterPerPixel = 1;
+calibrating = false;
 
     distanceText.innerText = "0 m";
     bearingText.innerText = "0°";
@@ -185,9 +191,7 @@ resetBtn.onclick=function(){
     draw();
 
 }
-document.body.addEventListener("click", () => {
-    canvas.focus();
-});
+
 canvas.addEventListener("mousedown", e => {
     if (e.button !== 1) return;
 
@@ -300,8 +304,6 @@ else {
         const angle=Math.atan2(dx,-dy)*180/Math.PI;
 
         bearingText.innerText=((angle+360)%360).toFixed(1)+"°";
-
-        errorText.innerText= "±1 m";
 
     }
 
