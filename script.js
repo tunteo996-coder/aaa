@@ -59,20 +59,26 @@ function loadImage(src){
 
     const img=new Image();
 
-    img.onload=function(){
+    img.onload = function(){
 
-        image=img;
+    image = img;
 
-        canvas.width=img.width;
-        canvas.height=img.height;
+    canvas.width = img.width;
+    canvas.height = img.height;
 
-        scale=1;
-        offsetX=0;
-        offsetY=0;
+    scale = 1;
+    offsetX = 0;
+    offsetY = 0;
 
-        draw();
+    points = [];
 
-    }
+    distanceText.innerText = "0 m";
+    bearingText.innerText = "0°";
+    errorText.innerText = "±0 m";
+
+    draw();
+
+}
 
     img.src=src;
 
