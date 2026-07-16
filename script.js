@@ -3,6 +3,7 @@ const ctx = canvas.getContext("2d");
 
 const upload = document.getElementById("upload");
 const resetBtn = document.getElementById("resetBtn");
+const calibrateBtn = document.getElementById("calibrateBtn");
 const zoomInBtn = document.getElementById("zoomIn");
 const zoomOutBtn = document.getElementById("zoomOut");
 
@@ -209,6 +210,14 @@ zoomOutBtn.onclick = () => {
     scale /= 1.2;
 
     draw();
+
+};
+calibrateBtn.onclick = () => {
+
+    calibrating = true;
+    points = [];
+
+    alert("Bấm 2 đầu của 1 ô lưới 100m.");
 
 };
 canvas.addEventListener("click",e=>{
