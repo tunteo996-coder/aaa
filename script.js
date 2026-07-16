@@ -7,6 +7,10 @@ const calibrateBtn = document.getElementById("calibrateBtn");
 const zoomInBtn = document.getElementById("zoomIn");
 const zoomOutBtn = document.getElementById("zoomOut");
 
+const distanceText = document.getElementById("distance");
+const bearingText = document.getElementById("bearing");
+const errorText = document.getElementById("error");
+
 let image = null;
 
 let scale = 1;
@@ -16,19 +20,21 @@ let offsetY = 0;
 let dragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
+
 let points = [];
 let mousePoint = null;
+
+let calibrating = false;
 let meterPerPixel = null;
+
 const MIN_RANGE = 100;
 const MAX_RANGE = 700;
-let calibrating = false;
 
-const distanceText = document.getElementById("distance");
-const bearingText = document.getElementById("bearing");
-const errorText = document.getElementById("error");
+// =====================
+// DRAW
+// =====================
 
-
-function draw(){
+function draw() {
 
     ctx.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -39,116 +45,136 @@ function draw(){
 
     ctx.drawImage(image,0,0);
 
-    // Vẽ vòng tròn tầm bắn
-    if (meterPerPixel !== null && points.length >= 1) {
+    // vòng tròn tầm bắn
+    if(meterPerPixel && points.length>0){
 
         ctx.beginPath();
-        ctx.arc(points[0].x, points[0].y, MIN_RANGE / meterPerPixel, 0, Math.PI * 2);
-        ctx.strokeStyle = "#00ff00";
-        ctx.lineWidth = 2;
+        ctx.arc(
+            points[0].x,
+            points[0].y,
+            MIN_RANGE/meterPerPixel,
+            0,
+            Math.PI*2
+        );
+        ctx.strokeStyle="#00ff00";
+        ctx.lineWidth=2;
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.arc(points[0].x, points[0].y, MAX_RANGE / meterPerPixel, 0, Math.PI * 2);
-        ctx.strokeStyle = "#ff0000";
-        ctx.lineWidth = 2;
+        ctx.arc(
+            points[0].x,
+            points[0].y,
+            MAX_RANGE/meterPerPixel,
+            0,
+            Math.PI*2
+        );
+        ctx.strokeStyle="#ff0000";
+        ctx.lineWidth=2;
         ctx.stroke();
 
     }
 
-    // Vẽ các điểm
-    points.forEach((p,index)=>{
+    // đường preview
+    if(points.length===1 && mousePoint){
 
         ctx.beginPath();
-        ctx.arc(p.x,p.y,8,0,Math.PI*2);
+        ctx.moveTo(points[0].x,points[0].y);
+        ctx.lineTo(mousePoint.x,mousePoint.y);
 
-        ctx.fillStyle = index===0 ? "#00ff00" : "#ff0000";
-        ctx.fill();
+        ctx.setLineDash([10,8]);
+        ctx.strokeStyle="#00ffff";
+        ctx.lineWidth=2;
+        ctx.stroke();
+        ctx.setLineDash([]);
 
-    });
+    }
 
-    // Vẽ đường nối
+    // đường chính
     if(points.length===2){
 
         ctx.beginPath();
         ctx.moveTo(points[0].x,points[0].y);
         ctx.lineTo(points[1].x,points[1].y);
+
         ctx.strokeStyle="#ffff00";
         ctx.lineWidth=3;
         ctx.stroke();
 
     }
 
-}
-// Vẽ đường tạm từ điểm đầu đến vị trí chuột
-if (points.length === 1 && mousePoint) {
+    // điểm
+    points.forEach((p,i)=>{
 
-    ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
-    ctx.lineTo(mousePoint.x, mousePoint.y);
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,8,0,Math.PI*2);
 
-    ctx.setLineDash([10, 10]); // Nét đứt
-    ctx.strokeStyle = "#00ffff";
-    ctx.lineWidth = 2;
-    ctx.stroke();
+        ctx.fillStyle=i===0 ? "#00ff00" : "#ff0000";
+        ctx.fill();
 
-    ctx.setLineDash([]); // Trả về nét liền
+    });
 
 }
+
+// =====================
+// LOAD IMAGE
+// =====================
+
 function loadImage(src){
 
     const img=new Image();
 
-    img.onload = function(){
+    img.onload=function(){
 
-    image = img;
+        image=img;
 
-    canvas.width = img.width;
-    canvas.height = img.height;
+        canvas.width=img.width;
+        canvas.height=img.height;
 
-    scale = 1;
-    offsetX = 0;
-    offsetY = 0;
+        scale=1;
+        offsetX=0;
+        offsetY=0;
 
-    points = [];
-        meterPerPixel = null;
-calibrating = false;
+        points=[];
+        mousePoint=null;
 
-    distanceText.innerText = "0 m";
-    bearingText.innerText = "0°";
-    errorText.innerText = "±0 m";
+        meterPerPixel=null;
+        calibrating=false;
 
-    draw();
+        distanceText.innerText="0 m";
+        bearingText.innerText="0°";
+        errorText.innerText="Chưa hiệu chuẩn";
 
-}
+        draw();
+
+    };
 
     img.src=src;
 
 }
+// =====================
+// UPLOAD
+// =====================
 
 upload.addEventListener("change",e=>{
 
     const file=e.target.files[0];
-
     if(!file) return;
 
     const reader=new FileReader();
 
-    reader.onload=ev=>{
-
-        loadImage(ev.target.result);
-
-    }
+    reader.onload=ev=>loadImage(ev.target.result);
 
     reader.readAsDataURL(file);
 
 });
 
+// =====================
+// PASTE IMAGE
+// =====================
+
 document.addEventListener("paste",e=>{
 
-    const items=e.clipboardData.items;
-
-    for(const item of items){
+    for(const item of e.clipboardData.items){
 
         if(!item.type.startsWith("image")) continue;
 
@@ -156,21 +182,20 @@ document.addEventListener("paste",e=>{
 
         const reader=new FileReader();
 
-        reader.onload=ev=>{
-
-            loadImage(ev.target.result);
-
-        }
+        reader.onload=ev=>loadImage(ev.target.result);
 
         reader.readAsDataURL(file);
 
         e.preventDefault();
-
         return;
 
     }
 
 });
+
+// =====================
+// DRAG DROP
+// =====================
 
 canvas.addEventListener("dragover",e=>{
 
@@ -188,110 +213,161 @@ canvas.addEventListener("drop",e=>{
 
     const reader=new FileReader();
 
-    reader.onload=ev=>{
-
-        loadImage(ev.target.result);
-
-    }
+    reader.onload=ev=>loadImage(ev.target.result);
 
     reader.readAsDataURL(file);
 
 });
 
-resetBtn.onclick = function(){
+// =====================
+// RESET
+// =====================
 
-    scale = 1;
-    offsetX = 0;
-    offsetY = 0;
+resetBtn.onclick=()=>{
 
-    points = [];
+    scale=1;
+    offsetX=0;
+    offsetY=0;
 
-    meterPerPixel = null;
-calibrating = false;
+    points=[];
+    mousePoint=null;
 
-    distanceText.innerText = "0 m";
-    bearingText.innerText = "0°";
-    errorText.innerText = "±0 m";
-    
+    meterPerPixel=null;
+    calibrating=false;
 
-    draw();
-
-}
-
-canvas.addEventListener("mousedown", e => {
-    if (e.button !== 1) return;
-
-    dragging = true;
-
-    dragStartX = e.clientX - offsetX;
-    dragStartY = e.clientY - offsetY;
-
-});
-
-window.addEventListener("mouseup", () => {
-
-    dragging = false;
-
-});
-
-window.addEventListener("mousemove", e => {
-
-    if (!dragging) return;
-
-    offsetX = e.clientX - dragStartX;
-    offsetY = e.clientY - dragStartY;
+    distanceText.innerText="0 m";
+    bearingText.innerText="0°";
+    errorText.innerText="Chưa hiệu chuẩn";
 
     draw();
 
+};
+
+// =====================
+// ZOOM
+// =====================
+
+zoomInBtn.onclick=()=>{
+
+    scale*=1.2;
+    draw();
+
+};
+
+zoomOutBtn.onclick=()=>{
+
+    scale/=1.2;
+    draw();
+
+};
+
+// =====================
+// PAN (NÚT GIỮA CHUỘT)
+// =====================
+
+canvas.addEventListener("mousedown",e=>{
+
+    if(e.button!==1) return;
+
+    dragging=true;
+
+    dragStartX=e.clientX-offsetX;
+    dragStartY=e.clientY-offsetY;
+
 });
-canvas.addEventListener("mousemove", e => {
 
-    if (dragging) return;
-    if (points.length !== 1) return;
+window.addEventListener("mouseup",()=>{
 
-    const rect = canvas.getBoundingClientRect();
+    dragging=false;
 
-    mousePoint = {
-        const dx = mousePoint.x - points[0].x;
-const dy = mousePoint.y - points[0].y;
+});
 
-const pixelDistance = Math.sqrt(dx * dx + dy * dy);
-const distanceMeter = pixelDistance * meterPerPixel;
+window.addEventListener("mousemove",e=>{
 
-distanceText.innerText = Math.round(distanceMeter) + " m";
+    if(!dragging) return;
 
-const angle = Math.atan2(dx, -dy) * 180 / Math.PI;
-bearingText.innerText = ((angle + 360) % 360).toFixed(1) + "°";
-        x: (e.clientX - rect.left - offsetX) / scale,
-        y: (e.clientY - rect.top - offsetY) / scale
+    offsetX=e.clientX-dragStartX;
+    offsetY=e.clientY-dragStartY;
+
+    draw();
+
+});
+
+// =====================
+// CALIBRATE
+// =====================
+
+calibrateBtn.onclick=()=>{
+
+    if(!image){
+        alert("Hãy mở ảnh trước.");
+        return;
+    }
+
+    calibrating=true;
+    points=[];
+    mousePoint=null;
+
+    errorText.innerText="Đang hiệu chuẩn...";
+
+    alert("Hãy click 2 đầu của một ô lưới 100m.");
+
+    draw();
+
+};
+// =====================
+// ĐO KHI DI CHUỘT
+// =====================
+
+canvas.addEventListener("mousemove", e=>{
+
+    if(dragging) return;
+    if(points.length!==1) return;
+
+    const rect=canvas.getBoundingClientRect();
+
+    mousePoint={
+        x:(e.clientX-rect.left-offsetX)/scale,
+        y:(e.clientY-rect.top-offsetY)/scale
     };
 
+    if(meterPerPixel){
+
+        const dx=mousePoint.x-points[0].x;
+        const dy=mousePoint.y-points[0].y;
+
+        const pixelDistance=Math.sqrt(dx*dx+dy*dy);
+        const distanceMeter=pixelDistance*meterPerPixel;
+
+        distanceText.innerText=Math.round(distanceMeter)+" m";
+
+        const angle=Math.atan2(dx,-dy)*180/Math.PI;
+        bearingText.innerText=((angle+360)%360).toFixed(1)+"°";
+
+        if(distanceMeter<MIN_RANGE){
+
+            errorText.innerText="Quá gần";
+
+        }else if(distanceMeter>MAX_RANGE){
+
+            errorText.innerText="Ngoài tầm";
+
+        }else{
+
+            errorText.innerText="Trong tầm";
+
+        }
+
+    }
+
     draw();
 
 });
-zoomInBtn.onclick = () => {
 
-    scale *= 1.2;
+// =====================
+// CLICK
+// =====================
 
-    draw();
-
-};
-
-zoomOutBtn.onclick = () => {
-
-    scale /= 1.2;
-
-    draw();
-
-};
-calibrateBtn.onclick = () => {
-
-    calibrating = true;
-    points = [];
-
-    alert("Bấm 2 đầu của 1 ô lưới 100m.");
-
-};
 canvas.addEventListener("click",e=>{
 
     if(!image) return;
@@ -300,68 +376,87 @@ canvas.addEventListener("click",e=>{
 
     const x=(e.clientX-rect.left-offsetX)/scale;
     const y=(e.clientY-rect.top-offsetY)/scale;
-   
+
+    // ===== HIỆU CHUẨN =====
+
+    if(calibrating){
+
+        points.push({x,y});
+
+        if(points.length===2){
+
+            const dx=points[1].x-points[0].x;
+            const dy=points[1].y-points[0].y;
+
+            const pixelDistance=Math.sqrt(dx*dx+dy*dy);
+
+            meterPerPixel=100/pixelDistance;
+
+            calibrating=false;
+
+            points=[];
+            mousePoint=null;
+
+            errorText.innerText="Đã hiệu chuẩn";
+
+            alert("Hiệu chuẩn thành công!");
+
+        }
+
+        draw();
+        return;
+
+    }
+
+    // ===== CHƯA HIỆU CHUẨN =====
+
+    if(meterPerPixel===null){
+
+        alert("Hãy bấm Calibrate trước.");
+        return;
+
+    }
+
+    // ===== ĐO =====
 
     if(points.length===2){
+
         points=[];
+        mousePoint=null;
+
     }
-if (meterPerPixel === null && !calibrating) {
-    alert("Hãy bấm Calibrate trước.");
-    points = [];
-    draw();
-    return;
-}
+
     points.push({x,y});
-    if (calibrating && points.length === 2) {
-
-    const dx = points[1].x - points[0].x;
-    const dy = points[1].y - points[0].y;
-
-    const pixelDistance = Math.sqrt(dx * dx + dy * dy);
-
-    meterPerPixel = 100 / pixelDistance;
-
-    calibrating = false;
-
-    alert("Hiệu chuẩn thành công!");
- errorText.innerText = "Đã hiệu chuẩn";
-
-    points = [];
-
-    draw();
-
-    return;
-    }
 
     if(points.length===2){
+
+        mousePoint=null;
 
         const dx=points[1].x-points[0].x;
         const dy=points[1].y-points[0].y;
 
-        const pixelDistance = Math.sqrt(dx * dx + dy * dy);
+        const pixelDistance=Math.sqrt(dx*dx+dy*dy);
 
-const distanceMeter = pixelDistance * meterPerPixel;
+        const distanceMeter=pixelDistance*meterPerPixel;
 
-distanceText.innerText = Math.round(distanceMeter) + " m";
-if (distanceMeter < MIN_RANGE) {
-
-    errorText.innerText = "Quá gần";
-
-}
-else if (distanceMeter > MAX_RANGE) {
-
-    errorText.innerText = "Ngoài tầm";
-
-}
-else {
-
-    errorText.innerText = "Trong tầm";
-
-}       
+        distanceText.innerText=Math.round(distanceMeter)+" m";
 
         const angle=Math.atan2(dx,-dy)*180/Math.PI;
-
         bearingText.innerText=((angle+360)%360).toFixed(1)+"°";
+
+        if(distanceMeter<MIN_RANGE){
+
+            errorText.innerText="Quá gần";
+
+        }else if(distanceMeter>MAX_RANGE){
+
+            errorText.innerText="Ngoài tầm";
+
+        }else{
+
+            errorText.innerText="Trong tầm";
+
+        }
 
     }
 
