@@ -3,49 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PUBG Mortar Tool</title>
 
-<style>
-body{
-    margin:0;
-    font-family:Arial,sans-serif;
-    background:#202124;
-    color:white;
-    text-align:center;
-}
+<title>PUBG Mortar Distance Tool</title>
 
-header{
-    background:#111;
-    padding:18px;
-    font-size:28px;
-    font-weight:bold;
-}
-
-.container{
-    margin:30px auto;
-    width:90%;
-    max-width:900px;
-}
-
-#dropZone{
-    border:3px dashed #00c853;
-    padding:50px;
-    border-radius:15px;
-    cursor:pointer;
-    background:#2b2b2b;
-}
-
-canvas{
-    margin-top:20px;
-    max-width:100%;
-    border:2px solid white;
-}
-
-.result{
-    margin-top:20px;
-    font-size:22px;
-}
-</style>
+<link rel="stylesheet" href="style.css">
 
 </head>
 
@@ -57,94 +18,49 @@ PUBG Mortar Distance Tool
 
 <div class="container">
 
-<div id="dropZone">
-Kéo ảnh PUBG vào đây hoặc click để chọn
-<br><br>
+<div class="toolbar">
 
-<input type="file" id="fileInput" hidden>
+<label class="button">
+<input type="file" id="upload" accept="image/*">
+📷 Chọn ảnh PUBG
+</label>
 
-<button onclick="fileInput.click()">
-Chọn ảnh
-</button>
+<button id="resetBtn">Reset</button>
 
-</div>
+<button id="zoomIn">+</button>
 
-<canvas id="canvas"></canvas>
-
-<div class="result">
-
-<div>Distance : <span id="distance">---</span> m</div>
-
-<div>Bearing : <span id="bearing">---</span>°</div>
-
-<div>Error : ±<span id="error">0</span> m</div>
+<button id="zoomOut">−</button>
 
 </div>
 
+<div class="canvasBox">
+
+<canvas id="canvas" width="1400" height="900"></canvas>
+
 </div>
 
-<script>
+<div class="info">
 
-const input=document.getElementById("fileInput");
+<div class="card">
+Distance
+<div class="value" id="distance">0 m</div>
+</div>
 
-const canvas=document.getElementById("canvas");
+<div class="card">
+Bearing
+<div class="value" id="bearing">0°</div>
+</div>
 
-const ctx=canvas.getContext("2d");
+<div class="card">
+Error
+<div class="value" id="error">±0 m</div>
+</div>
 
-input.onchange=e=>{
+</div>
 
-const file=e.target.files[0];
+</div>
 
-const img=new Image();
-
-img.onload=()=>{
-
-canvas.width=img.width;
-
-canvas.height=img.height;
-
-ctx.drawImage(img,0,0);
-
-};
-
-img.src=URL.createObjectURL(file);
-
-}
-
-const zone=document.getElementById("dropZone");
-
-zone.onclick=()=>input.click();
-
-zone.ondragover=e=>{
-
-e.preventDefault();
-
-}
-
-zone.ondrop=e=>{
-
-e.preventDefault();
-
-const file=e.dataTransfer.files[0];
-
-const img=new Image();
-
-img.onload=()=>{
-
-canvas.width=img.width;
-
-canvas.height=img.height;
-
-ctx.drawImage(img,0,0);
-
-}
-
-img.src=URL.createObjectURL(file);
-
-}
-
-</script>
+<script src="script.js"></script>
 
 </body>
-
 </html>
