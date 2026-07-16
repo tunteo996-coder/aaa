@@ -27,6 +27,26 @@ function draw(){
     ctx.setTransform(scale,0,0,scale,offsetX,offsetY);
 
     ctx.drawImage(image,0,0);
+    points.forEach((p,index)=>{
+
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,8,0,Math.PI*2);
+
+    ctx.fillStyle=index===0 ? "#00ff00" : "#ff0000";
+    ctx.fill();
+
+});
+
+if(points.length===2){
+
+    ctx.beginPath();
+    ctx.moveTo(points[0].x,points[0].y);
+    ctx.lineTo(points[1].x,points[1].y);
+    ctx.strokeStyle="#ffff00";
+    ctx.lineWidth=3;
+    ctx.stroke();
+
+}
 
 }
 
@@ -183,3 +203,38 @@ let points = [];
 const distanceText = document.getElementById("distance");
 const bearingText = document.getElementById("bearing");
 const errorText = document.getElementById("error");
+canvas.addEventListener("click",e=>{
+
+    if(!image) return;
+
+    const rect=canvas.getBoundingClientRect();
+
+    const x=(e.clientX-rect.left-offsetX)/scale;
+    const y=(e.clientY-rect.top-offsetY)/scale;
+
+    if(points.length===2){
+        points=[];
+    }
+
+    points.push({x,y});
+
+    if(points.length===2){
+
+        const dx=points[1].x-points[0].x;
+        const dy=points[1].y-points[0].y;
+
+        const pixelDistance=Math.sqrt(dx*dx+dy*dy);
+
+        distanceText.innerText=Math.round(pixelDistance)+" px";
+
+        const angle=Math.atan2(dx,-dy)*180/Math.PI;
+
+        bearingText.innerText=((angle+360)%360).toFixed(1)+"°";
+
+        errorText.innerText="Chưa hiệu chuẩn";
+
+    }
+
+    draw();
+
+});
