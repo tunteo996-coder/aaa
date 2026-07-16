@@ -182,11 +182,17 @@ canvas.addEventListener("drop",e=>{
 
 });
 
-resetBtn.onclick=function(){
+resetBtn.onclick = function(){
 
-    scale=1;
-    offsetX=0;
-    offsetY=0;
+    scale = 1;
+    offsetX = 0;
+    offsetY = 0;
+
+    points = [];
+
+    distanceText.innerText = "0 m";
+    bearingText.innerText = "0°";
+    errorText.innerText = "±0 m";
 
     draw();
 
@@ -249,6 +255,12 @@ canvas.addEventListener("click",e=>{
 
     const x=(e.clientX-rect.left-offsetX)/scale;
     const y=(e.clientY-rect.top-offsetY)/scale;
+    if (meterPerPixel === 1 && !calibrating) {
+    alert("Hãy bấm Calibrate trước.");
+    points = [];
+    draw();
+    return;
+}
 
     if(points.length===2){
         points=[];
@@ -267,6 +279,7 @@ canvas.addEventListener("click",e=>{
     calibrating = false;
 
     alert("Hiệu chuẩn thành công!");
+ errorText.innerText = "Đã hiệu chuẩn";
 
     points = [];
 
