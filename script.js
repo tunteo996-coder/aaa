@@ -137,3 +137,43 @@ resetBtn.onclick=function(){
 document.body.addEventListener("click", () => {
     canvas.focus();
 });
+canvas.addEventListener("mousedown", e => {
+
+    dragging = true;
+
+    dragStartX = e.clientX - offsetX;
+    dragStartY = e.clientY - offsetY;
+
+});
+
+window.addEventListener("mouseup", () => {
+
+    dragging = false;
+
+});
+
+window.addEventListener("mousemove", e => {
+
+    if (!dragging) return;
+
+    offsetX = e.clientX - dragStartX;
+    offsetY = e.clientY - dragStartY;
+
+    draw();
+
+});
+zoomInBtn.onclick = () => {
+
+    scale *= 1.2;
+
+    draw();
+
+};
+
+zoomOutBtn.onclick = () => {
+
+    scale /= 1.2;
+
+    draw();
+
+};
