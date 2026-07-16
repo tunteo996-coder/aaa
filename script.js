@@ -134,3 +134,6 @@ resetBtn.onclick=function(){
     draw();
 
 }
+document.body.addEventListener("click", () => {
+    canvas.focus();
+});
