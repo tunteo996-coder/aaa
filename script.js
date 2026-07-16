@@ -1,69 +1,25 @@
-body{
-    margin:0;
-    background:#202124;
-    color:white;
-    font-family:Arial,sans-serif;
-}
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-header{
-    background:#111;
-    padding:15px;
-    text-align:center;
-    font-size:26px;
-    font-weight:bold;
-}
+const upload = document.getElementById("upload");
 
-.container{
-    width:95%;
-    max-width:1200px;
-    margin:20px auto;
-}
+let img = new Image();
 
-.toolbar{
-    display:flex;
-    gap:10px;
-    justify-content:center;
-    align-items:center;
-    flex-wrap:wrap;
-    margin-bottom:15px;
-}
+upload.addEventListener("change", e => {
 
-.button{
-    background:#2d7ef7;
-    color:white;
-    padding:10px 18px;
-    border-radius:8px;
-    cursor:pointer;
-}
+    const file = e.target.files[0];
+    if (!file) return;
 
-.button input{
-    display:none;
-}
+    img.onload = function(){
 
-button{
-    padding:10px 16px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-}
+        canvas.width = img.width;
+        canvas.height = img.height;
 
-canvas{
-    border:2px solid #555;
-    background:black;
-    display:block;
-    margin:auto;
-    max-width:100%;
-}
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.drawImage(img,0,0);
 
-#result{
-    text-align:center;
-    margin-top:20px;
-    font-size:22px;
-    line-height:1.7;
-}
+    }
 
-#hint{
-    text-align:center;
-    color:#9fd5ff;
-    margin-bottom:15px;
-}
+    img.src = URL.createObjectURL(file);
+
+});
