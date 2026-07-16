@@ -169,6 +169,7 @@ document.body.addEventListener("click", () => {
     canvas.focus();
 });
 canvas.addEventListener("mousedown", e => {
+    if (e.button !== 1) return;
 
     dragging = true;
 
