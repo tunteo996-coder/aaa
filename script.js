@@ -17,6 +17,7 @@ let dragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
 let points = [];
+let mousePoint = null;
 let meterPerPixel = null;
 const MIN_RANGE = 100;
 const MAX_RANGE = 700;
@@ -77,6 +78,21 @@ function draw(){
         ctx.stroke();
 
     }
+
+}
+// Vẽ đường tạm từ điểm đầu đến vị trí chuột
+if (points.length === 1 && mousePoint) {
+
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    ctx.lineTo(mousePoint.x, mousePoint.y);
+
+    ctx.setLineDash([10, 10]); // Nét đứt
+    ctx.strokeStyle = "#00ffff";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.setLineDash([]); // Trả về nét liền
 
 }
 function loadImage(src){
@@ -224,6 +240,31 @@ window.addEventListener("mousemove", e => {
 
     offsetX = e.clientX - dragStartX;
     offsetY = e.clientY - dragStartY;
+
+    draw();
+
+});
+canvas.addEventListener("mousemove", e => {
+
+    if (dragging) return;
+    if (points.length !== 1) return;
+
+    const rect = canvas.getBoundingClientRect();
+
+    mousePoint = {
+        const dx = mousePoint.x - points[0].x;
+const dy = mousePoint.y - points[0].y;
+
+const pixelDistance = Math.sqrt(dx * dx + dy * dy);
+const distanceMeter = pixelDistance * meterPerPixel;
+
+distanceText.innerText = Math.round(distanceMeter) + " m";
+
+const angle = Math.atan2(dx, -dy) * 180 / Math.PI;
+bearingText.innerText = ((angle + 360) % 360).toFixed(1) + "°";
+        x: (e.clientX - rect.left - offsetX) / scale,
+        y: (e.clientY - rect.top - offsetY) / scale
+    };
 
     draw();
 
