@@ -16,6 +16,8 @@ let dragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
 let points = [];
+let pixelsPerMeter = null;
+let calibrating = false;
 
 const distanceText = document.getElementById("distance");
 const bearingText = document.getElementById("bearing");
