@@ -15,6 +15,11 @@ let offsetY = 0;
 let dragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
+let points = [];
+
+const distanceText = document.getElementById("distance");
+const bearingText = document.getElementById("bearing");
+const errorText = document.getElementById("error");
 
 function draw(){
 
