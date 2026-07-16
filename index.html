@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PUBG Mortar Tool</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#202124;
+    color:white;
+    text-align:center;
+}
+
+header{
+    background:#111;
+    padding:18px;
+    font-size:28px;
+    font-weight:bold;
+}
+
+.container{
+    margin:30px auto;
+    width:90%;
+    max-width:900px;
+}
+
+#dropZone{
+    border:3px dashed #00c853;
+    padding:50px;
+    border-radius:15px;
+    cursor:pointer;
+    background:#2b2b2b;
+}
+
+canvas{
+    margin-top:20px;
+    max-width:100%;
+    border:2px solid white;
+}
+
+.result{
+    margin-top:20px;
+    font-size:22px;
+}
+</style>
+
+</head>
+
+<body>
+
+<header>
+PUBG Mortar Distance Tool
+</header>
+
+<div class="container">
+
+<div id="dropZone">
+Kéo ảnh PUBG vào đây hoặc click để chọn
+<br><br>
+
+<input type="file" id="fileInput" hidden>
+
+<button onclick="fileInput.click()">
+Chọn ảnh
+</button>
+
+</div>
+
+<canvas id="canvas"></canvas>
+
+<div class="result">
+
+<div>Distance : <span id="distance">---</span> m</div>
+
+<div>Bearing : <span id="bearing">---</span>°</div>
+
+<div>Error : ±<span id="error">0</span> m</div>
+
+</div>
+
+</div>
+
+<script>
+
+const input=document.getElementById("fileInput");
+
+const canvas=document.getElementById("canvas");
+
+const ctx=canvas.getContext("2d");
+
+input.onchange=e=>{
+
+const file=e.target.files[0];
+
+const img=new Image();
+
+img.onload=()=>{
+
+canvas.width=img.width;
+
+canvas.height=img.height;
+
+ctx.drawImage(img,0,0);
+
+};
+
+img.src=URL.createObjectURL(file);
+
+}
+
+const zone=document.getElementById("dropZone");
+
+zone.onclick=()=>input.click();
+
+zone.ondragover=e=>{
+
+e.preventDefault();
+
+}
+
+zone.ondrop=e=>{
+
+e.preventDefault();
+
+const file=e.dataTransfer.files[0];
+
+const img=new Image();
+
+img.onload=()=>{
+
+canvas.width=img.width;
+
+canvas.height=img.height;
+
+ctx.drawImage(img,0,0);
+
+}
+
+img.src=URL.createObjectURL(file);
+
+}
+
+</script>
+
+</body>
+
+</html>
