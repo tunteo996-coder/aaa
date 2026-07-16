@@ -234,21 +234,42 @@ canvas.addEventListener("click",e=>{
     }
 
     points.push({x,y});
+    if (calibrating && points.length === 2) {
+
+    const dx = points[1].x - points[0].x;
+    const dy = points[1].y - points[0].y;
+
+    const pixelDistance = Math.sqrt(dx * dx + dy * dy);
+
+    meterPerPixel = 100 / pixelDistance;
+
+    calibrating = false;
+
+    alert("Hiệu chuẩn thành công!");
+
+    points = [];
+
+    draw();
+
+    return;
+    }
 
     if(points.length===2){
 
         const dx=points[1].x-points[0].x;
         const dy=points[1].y-points[0].y;
 
-        const pixelDistance=Math.sqrt(dx*dx+dy*dy);
+        const pixelDistance = Math.sqrt(dx * dx + dy * dy);
 
-        distanceText.innerText=Math.round(pixelDistance)+" px";
+const distanceMeter = pixelDistance * meterPerPixel;
+
+distanceText.innerText = Math.round(distanceMeter) + " m";
 
         const angle=Math.atan2(dx,-dy)*180/Math.PI;
 
         bearingText.innerText=((angle+360)%360).toFixed(1)+"°";
 
-        errorText.innerText="Chưa hiệu chuẩn";
+        errorText.innerText= "±1 m";
 
     }
 
