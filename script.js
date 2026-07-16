@@ -1,34 +1,67 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+
 const upload = document.getElementById("upload");
+const resetBtn = document.getElementById("resetBtn");
+const zoomInBtn = document.getElementById("zoomIn");
+const zoomOutBtn = document.getElementById("zoomOut");
 
-let img = new Image();
+let image = null;
 
-// Hàm dùng chung để tải ảnh
+let scale = 1;
+let offsetX = 0;
+let offsetY = 0;
+
+let dragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+
+function draw(){
+
+    ctx.setTransform(1,0,0,1,0,0);
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    if(!image) return;
+
+    ctx.setTransform(scale,0,0,scale,offsetX,offsetY);
+
+    ctx.drawImage(image,0,0);
+
+}
+
 function loadImage(src){
 
-    img.onload = function(){
+    const img=new Image();
 
-        canvas.width = img.width;
-        canvas.height = img.height;
+    img.onload=function(){
 
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.drawImage(img,0,0);
+        image=img;
+
+        canvas.width=img.width;
+        canvas.height=img.height;
+
+        scale=1;
+        offsetX=0;
+        offsetY=0;
+
+        draw();
 
     }
 
-    img.src = src;
+    img.src=src;
+
 }
 
-// Chọn file
-upload.addEventListener("change", e => {
+upload.addEventListener("change",e=>{
 
-    const file = e.target.files[0];
+    const file=e.target.files[0];
+
     if(!file) return;
 
-    const reader = new FileReader();
+    const reader=new FileReader();
 
-    reader.onload = function(ev){
+    reader.onload=ev=>{
 
         loadImage(ev.target.result);
 
@@ -38,20 +71,19 @@ upload.addEventListener("change", e => {
 
 });
 
-// Ctrl + V
-document.addEventListener("paste", e=>{
+document.addEventListener("paste",e=>{
 
-    const items = e.clipboardData.items;
+    const items=e.clipboardData.items;
 
     for(const item of items){
 
-        if(item.type.indexOf("image")===-1) continue;
+        if(!item.type.startsWith("image")) continue;
 
         const file=item.getAsFile();
 
         const reader=new FileReader();
 
-        reader.onload=function(ev){
+        reader.onload=ev=>{
 
             loadImage(ev.target.result);
 
@@ -62,6 +94,43 @@ document.addEventListener("paste", e=>{
         e.preventDefault();
 
         return;
+
     }
 
 });
+
+canvas.addEventListener("dragover",e=>{
+
+    e.preventDefault();
+
+});
+
+canvas.addEventListener("drop",e=>{
+
+    e.preventDefault();
+
+    const file=e.dataTransfer.files[0];
+
+    if(!file) return;
+
+    const reader=new FileReader();
+
+    reader.onload=ev=>{
+
+        loadImage(ev.target.result);
+
+    }
+
+    reader.readAsDataURL(file);
+
+});
+
+resetBtn.onclick=function(){
+
+    scale=1;
+    offsetX=0;
+    offsetY=0;
+
+    draw();
+
+}
