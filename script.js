@@ -39,7 +39,7 @@ function draw(){
     ctx.drawImage(image,0,0);
 
     // Vẽ vòng tròn tầm bắn
-    if (points.length >= 1) {
+    if (meterPerPixel !== null && points.length >= 1) {
 
         ctx.beginPath();
         ctx.arc(points[0].x, points[0].y, MIN_RANGE / meterPerPixel, 0, Math.PI * 2);
@@ -190,9 +190,13 @@ resetBtn.onclick = function(){
 
     points = [];
 
+    meterPerPixel = null;
+calibrating = false;
+
     distanceText.innerText = "0 m";
     bearingText.innerText = "0°";
     errorText.innerText = "±0 m";
+    
 
     draw();
 
