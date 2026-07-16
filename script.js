@@ -17,7 +17,7 @@ let dragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
 let points = [];
-let meterPerPixel = 1;
+let meterPerPixel = null;
 const MIN_RANGE = 100;
 const MAX_RANGE = 700;
 let calibrating = false;
@@ -95,7 +95,7 @@ function loadImage(src){
     offsetY = 0;
 
     points = [];
-        meterPerPixel = 1;
+        meterPerPixel = null;
 calibrating = false;
 
     distanceText.innerText = "0 m";
@@ -255,17 +255,17 @@ canvas.addEventListener("click",e=>{
 
     const x=(e.clientX-rect.left-offsetX)/scale;
     const y=(e.clientY-rect.top-offsetY)/scale;
-    if (meterPerPixel === 1 && !calibrating) {
+   
+
+    if(points.length===2){
+        points=[];
+    }
+if (meterPerPixel === null && !calibrating) {
     alert("Hãy bấm Calibrate trước.");
     points = [];
     draw();
     return;
 }
-
-    if(points.length===2){
-        points=[];
-    }
-
     points.push({x,y});
     if (calibrating && points.length === 2) {
 
