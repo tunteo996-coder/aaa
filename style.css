@@ -82,5 +82,5 @@ button:hover{
 }
 
 #canvas.dragging{
-    cursor:grabbing;
+    cursor:crosshair;
 }
