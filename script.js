@@ -11,40 +11,41 @@ const distanceText = document.getElementById("distance");
 const bearingText = document.getElementById("bearing");
 const errorText = document.getElementById("error");
 
+//======================
+// DATA
+//======================
+
 let image = null;
 
-// Camera
 let scale = 1;
 let offsetX = 0;
 let offsetY = 0;
 
-// Drag
 let dragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
 
-// Measure
 let points = [];
 let mousePoint = null;
 
-// Calibration
 let calibrating = false;
 let meterPerPixel = null;
 
-// Mortar range
 const MIN_RANGE = 100;
 const MAX_RANGE = 700;
+
+//======================
+// LẤY TỌA ĐỘ CHUỘT
+//======================
+
 function getMousePos(e){
 
     const rect = canvas.getBoundingClientRect();
 
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-
     return{
 
-        x:((e.clientX-rect.left)*scaleX-offsetX)/scale,
-        y:((e.clientY-rect.top)*scaleY-offsetY)/scale
+        x:(e.clientX - rect.left - offsetX) / scale,
+        y:(e.clientY - rect.top - offsetY) / scale
 
     };
 
@@ -60,8 +61,11 @@ function draw(){
 
     ctx.drawImage(image,0,0);
 
-    // Vòng tròn tầm bắn
-    if(meterPerPixel && points.length>0){
+    // vòng tròn
+    if(points.length>0 && meterPerPixel){
+
+        ctx.strokeStyle="#00ff00";
+        ctx.lineWidth=2;
 
         ctx.beginPath();
         ctx.arc(
@@ -71,9 +75,9 @@ function draw(){
             0,
             Math.PI*2
         );
-        ctx.strokeStyle="#00ff00";
-        ctx.lineWidth=2;
         ctx.stroke();
+
+        ctx.strokeStyle="#ff0000";
 
         ctx.beginPath();
         ctx.arc(
@@ -83,28 +87,28 @@ function draw(){
             0,
             Math.PI*2
         );
-        ctx.strokeStyle="#ff0000";
-        ctx.lineWidth=2;
         ctx.stroke();
 
     }
 
-    // Đường preview
+    // preview
     if(points.length===1 && mousePoint){
+
+        ctx.setLineDash([8,8]);
 
         ctx.beginPath();
         ctx.moveTo(points[0].x,points[0].y);
         ctx.lineTo(mousePoint.x,mousePoint.y);
 
-        ctx.setLineDash([10,8]);
         ctx.strokeStyle="#00ffff";
         ctx.lineWidth=2;
         ctx.stroke();
+
         ctx.setLineDash([]);
 
     }
 
-    // Đường chính
+    // đường đo
     if(points.length===2){
 
         ctx.beginPath();
@@ -117,7 +121,8 @@ function draw(){
 
     }
 
-    // Điểm
+    // điểm
+
     points.forEach((p,i)=>{
 
         ctx.beginPath();
@@ -129,9 +134,9 @@ function draw(){
     });
 
 }
-// =====================
+//======================
 // LOAD IMAGE
-// =====================
+//======================
 
 function loadImage(src){
 
@@ -141,7 +146,6 @@ function loadImage(src){
 
         image = img;
 
-        // Canvas luôn bằng kích thước ảnh
         canvas.width = img.width;
         canvas.height = img.height;
 
@@ -152,8 +156,8 @@ function loadImage(src){
         points = [];
         mousePoint = null;
 
-        meterPerPixel = null;
         calibrating = false;
+        meterPerPixel = null;
 
         distanceText.innerText = "0 m";
         bearingText.innerText = "0°";
@@ -165,12 +169,11 @@ function loadImage(src){
 
     img.src = src;
 
-}
-// =====================
+}//======================
 // UPLOAD
-// =====================
+//======================
 
-upload.addEventListener("change", e=>{
+upload.addEventListener("change",e=>{
 
     const file = e.target.files[0];
 
@@ -187,11 +190,11 @@ upload.addEventListener("change", e=>{
     reader.readAsDataURL(file);
 
 });
-// =====================
-// PASTE IMAGE
-// =====================
+//======================
+// PASTE
+//======================
 
-document.addEventListener("paste", e=>{
+document.addEventListener("paste",e=>{
 
     for(const item of e.clipboardData.items){
 
@@ -215,17 +218,17 @@ document.addEventListener("paste", e=>{
     }
 
 });
-// =====================
-// DRAG & DROP
-// =====================
+//======================
+// DRAG DROP
+//======================
 
-canvas.addEventListener("dragover", e=>{
+canvas.addEventListener("dragover",e=>{
 
     e.preventDefault();
 
 });
 
-canvas.addEventListener("drop", e=>{
+canvas.addEventListener("drop",e=>{
 
     e.preventDefault();
 
@@ -244,9 +247,9 @@ canvas.addEventListener("drop", e=>{
     reader.readAsDataURL(file);
 
 });
-// =====================
+//======================
 // RESET
-// =====================
+//======================
 
 resetBtn.onclick = ()=>{
 
@@ -257,8 +260,8 @@ resetBtn.onclick = ()=>{
     points = [];
     mousePoint = null;
 
-    meterPerPixel = null;
     calibrating = false;
+    meterPerPixel = null;
 
     distanceText.innerText = "0 m";
     bearingText.innerText = "0°";
@@ -266,50 +269,99 @@ resetBtn.onclick = ()=>{
 
     draw();
 
-};
-// =====================
-// ZOOM
-// =====================
+};//======================
+// ZOOM BUTTON
+//======================
 
 zoomInBtn.onclick = ()=>{
 
+    if(!image) return;
+
     scale *= 1.2;
+
     draw();
 
 };
 
 zoomOutBtn.onclick = ()=>{
 
+    if(!image) return;
+
     scale /= 1.2;
+
+    if(scale < 0.2) scale = 0.2;
+
     draw();
 
 };
-// =====================
-// PAN
-// =====================
 
-canvas.addEventListener("mousedown", e=>{
+//======================
+// ZOOM BẰNG CON LĂN
+//======================
 
-    if(e.button !== 1) return;
+canvas.addEventListener("wheel",e=>{
+
+    if(!image) return;
+
+    e.preventDefault();
+
+    const rect = canvas.getBoundingClientRect();
+
+    // Vị trí chuột trên canvas
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    const oldScale = scale;
+
+    if(e.deltaY < 0){
+
+        scale *= 1.1;
+
+    }else{
+
+        scale /= 1.1;
+
+    }
+
+    scale = Math.max(0.2,Math.min(scale,10));
+
+    // Giữ nguyên điểm dưới chuột
+    offsetX = mx - (mx - offsetX) * scale / oldScale;
+    offsetY = my - (my - offsetY) * scale / oldScale;
+
+    draw();
+
+},{passive:false});
+
+
+//======================
+// PAN (CHUỘT GIỮA)
+//======================
+
+canvas.addEventListener("mousedown",e=>{
+
+    if(e.button!==1) return;
+
+    e.preventDefault();
 
     dragging = true;
-
-    canvas.classList.add("dragging");
 
     dragStartX = e.clientX - offsetX;
     dragStartY = e.clientY - offsetY;
 
+    canvas.style.cursor = "move";
+
 });
 
-window.addEventListener("mouseup", ()=>{
+window.addEventListener("mouseup",()=>{
 
     dragging = false;
 
-    canvas.classList.remove("dragging");
+    canvas.style.cursor = "crosshair";
 
 });
 
-window.addEventListener("mousemove", e=>{
+window.addEventListener("mousemove",e=>{
 
     if(!dragging) return;
 
@@ -319,15 +371,15 @@ window.addEventListener("mousemove", e=>{
     draw();
 
 });
-// =====================
+//======================
 // CALIBRATE
-// =====================
+//======================
 
 calibrateBtn.onclick = ()=>{
 
     if(!image){
 
-        alert("Hãy mở ảnh trước.");
+        alert("Hãy mở bản đồ trước.");
         return;
 
     }
@@ -337,6 +389,10 @@ calibrateBtn.onclick = ()=>{
     points = [];
     mousePoint = null;
 
+    meterPerPixel = null;
+
+    distanceText.innerText = "0 m";
+    bearingText.innerText = "0°";
     errorText.innerText = "Đang hiệu chuẩn...";
 
     alert("Click vào hai đầu của một ô lưới 100m.");
@@ -344,75 +400,81 @@ calibrateBtn.onclick = ()=>{
     draw();
 
 };
-// =====================
-// PREVIEW KHI DI CHUỘT
-// =====================
+function updateMeasure(p){
 
-canvas.addEventListener("mousemove", e=>{
+    if(points.length!==1) return;
+    if(!meterPerPixel) return;
+
+    const dx = p.x - points[0].x;
+    const dy = p.y - points[0].y;
+
+    const pixelDistance = Math.sqrt(dx*dx + dy*dy);
+
+    const distanceMeter = pixelDistance * meterPerPixel;
+
+    distanceText.innerText =
+        Math.round(distanceMeter) + " m";
+
+    const angle =
+        Math.atan2(dx,-dy) * 180 / Math.PI;
+
+    bearingText.innerText =
+        ((angle+360)%360).toFixed(1) + "°";
+
+    if(distanceMeter < MIN_RANGE){
+
+        errorText.innerText = "Quá gần";
+
+    }
+    else if(distanceMeter > MAX_RANGE){
+
+        errorText.innerText = "Ngoài tầm";
+
+    }
+    else{
+
+        errorText.innerText = "Trong tầm";
+
+    }
+
+}
+//======================
+// PREVIEW
+//======================
+
+canvas.addEventListener("mousemove",e=>{
 
     if(dragging) return;
-
-    // Chỉ preview khi đã đặt điểm đầu
-    if(points.length !== 1) return;
+    if(points.length!==1) return;
 
     mousePoint = getMousePos(e);
 
-    if(meterPerPixel){
-
-        const dx = mousePoint.x - points[0].x;
-        const dy = mousePoint.y - points[0].y;
-
-        const pixelDistance = Math.sqrt(dx*dx + dy*dy);
-        const distanceMeter = pixelDistance * meterPerPixel;
-
-        distanceText.innerText = Math.round(distanceMeter) + " m";
-
-        const angle = Math.atan2(dx,-dy) * 180 / Math.PI;
-        bearingText.innerText = ((angle + 360) % 360).toFixed(1) + "°";
-
-        if(distanceMeter < MIN_RANGE){
-
-            errorText.innerText = "Quá gần";
-
-        }
-        else if(distanceMeter > MAX_RANGE){
-
-            errorText.innerText = "Ngoài tầm";
-
-        }
-        else{
-
-            errorText.innerText = "Trong tầm";
-
-        }
-
-    }
+    updateMeasure(mousePoint);
 
     draw();
 
 });
 
-// Khi chuột ra khỏi canvas thì xóa preview
-canvas.addEventListener("mouseleave", ()=>{
+canvas.addEventListener("mouseleave",()=>{
 
     mousePoint = null;
 
     draw();
 
 });
-// =====================
+//======================
 // CLICK
-// =====================
+//======================
 
-canvas.addEventListener("click", e=>{
+canvas.addEventListener("click",e=>{
 
     if(!image) return;
 
     const p = getMousePos(e);
 
-    // =====================
+    //======================
     // HIỆU CHUẨN
-    // =====================
+    //======================
 
     if(calibrating){
 
@@ -445,11 +507,11 @@ canvas.addEventListener("click", e=>{
 
     }
 
-    // =====================
+    //======================
     // CHƯA HIỆU CHUẨN
-    // =====================
+    //======================
 
-    if(meterPerPixel === null){
+    if(meterPerPixel===null){
 
         alert("Hãy bấm Calibrate trước.");
 
@@ -457,9 +519,9 @@ canvas.addEventListener("click", e=>{
 
     }
 
-    // =====================
-    // BẮT ĐẦU LẦN ĐO MỚI
-    // =====================
+    //======================
+    // ĐO MỚI
+    //======================
 
     if(points.length===2){
 
@@ -468,88 +530,16 @@ canvas.addEventListener("click", e=>{
 
     }
 
-    // Thêm điểm
     points.push(p);
-
-    // =====================
-    // ĐỦ 2 ĐIỂM
-    // =====================
 
     if(points.length===2){
 
         mousePoint = null;
 
-        const dx = points[1].x - points[0].x;
-        const dy = points[1].y - points[0].y;
-
-        const pixelDistance = Math.sqrt(dx*dx + dy*dy);
-
-        const distanceMeter = pixelDistance * meterPerPixel;
-
-        distanceText.innerText =
-            Math.round(distanceMeter) + " m";
-
-        const angle =
-            Math.atan2(dx,-dy) * 180 / Math.PI;
-
-        bearingText.innerText =
-            ((angle+360)%360).toFixed(1) + "°";
-
-        if(distanceMeter < MIN_RANGE){
-
-            errorText.innerText = "Quá gần";
-
-        }
-        else if(distanceMeter > MAX_RANGE){
-
-            errorText.innerText = "Ngoài tầm";
-
-        }
-        else{
-
-            errorText.innerText = "Trong tầm";
-
-        }
+        updateMeasure(points[1]);
 
     }
 
     draw();
 
 });
-
-// =====================
-// ZOOM BẰNG CON LĂN CHUỘT
-// =====================
-
-canvas.addEventListener("wheel", e=>{
-
-    if(!image) return;
-
-    e.preventDefault();
-
-    // Vị trí chuột trước khi zoom
-    const mouse = getMousePos(e);
-
-    // Tốc độ zoom
-    const zoomFactor = 1.1;
-
-    if(e.deltaY < 0){
-
-        scale *= zoomFactor;
-
-    }else{
-
-        scale /= zoomFactor;
-
-    }
-
-    // Giới hạn zoom
-    scale = Math.max(0.2, Math.min(scale, 10));
-
-    // Giữ nguyên điểm dưới con trỏ
-    offsetX = e.clientX - canvas.getBoundingClientRect().left - mouse.x * scale;
-    offsetY = e.clientY - canvas.getBoundingClientRect().top - mouse.y * scale;
-
-    draw();
-
-},{passive:false});
