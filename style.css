@@ -52,20 +52,6 @@ button:hover{
     background:#666;
 }
 
-#canvas{
-    border:2px solid #666;
-    cursor:crosshair;
-}
-
-#canvas{
-    position:absolute;
-    left:0;
-    top:0;
-    transform-origin:0 0;
-    cursor:crosshair;
-    user-select:none;
-}
-
 #result{
     margin-top:15px;
     font-size:18px;
