@@ -324,12 +324,7 @@ canvas.addEventListener("mousemove", e=>{
     if(dragging) return;
     if(points.length!==1) return;
 
-    const rect=canvas.getBoundingClientRect();
-
-    mousePoint={
-        x:(e.clientX-rect.left-offsetX)/scale,
-        y:(e.clientY-rect.top-offsetY)/scale
-    };
+    mousePoint = getMousePos(e);
 
     if(meterPerPixel){
 
@@ -372,10 +367,10 @@ canvas.addEventListener("click",e=>{
 
     if(!image) return;
 
-    const rect=canvas.getBoundingClientRect();
+    const p = getMousePos(e);
 
-    const x=(e.clientX-rect.left-offsetX)/scale;
-    const y=(e.clientY-rect.top-offsetY)/scale;
+const x = p.x;
+const y = p.y;
 
     // ===== HIỆU CHUẨN =====
 
