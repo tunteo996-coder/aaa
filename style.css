@@ -84,3 +84,7 @@ button:hover{
 #canvas.dragging{
     cursor:crosshair;
 }
+
+#canvas{
+    touch-action:none;
+}
