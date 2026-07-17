@@ -516,3 +516,40 @@ canvas.addEventListener("click", e=>{
     draw();
 
 });
+
+// =====================
+// ZOOM BẰNG CON LĂN CHUỘT
+// =====================
+
+canvas.addEventListener("wheel", e=>{
+
+    if(!image) return;
+
+    e.preventDefault();
+
+    // Vị trí chuột trước khi zoom
+    const mouse = getMousePos(e);
+
+    // Tốc độ zoom
+    const zoomFactor = 1.1;
+
+    if(e.deltaY < 0){
+
+        scale *= zoomFactor;
+
+    }else{
+
+        scale /= zoomFactor;
+
+    }
+
+    // Giới hạn zoom
+    scale = Math.max(0.2, Math.min(scale, 10));
+
+    // Giữ nguyên điểm dưới con trỏ
+    offsetX = e.clientX - canvas.getBoundingClientRect().left - mouse.x * scale;
+    offsetY = e.clientY - canvas.getBoundingClientRect().top - mouse.y * scale;
+
+    draw();
+
+},{passive:false});
